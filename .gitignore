@@ -1,25 +1,20 @@
-# CakePHP 3
+# Sekrety / konfiguracja serwera — NIGDY nie commitować
+config.php
 
-/vendor/*
-/config/app.php
+# System / edytory
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
 
-/tmp/cache/models/*
-!/tmp/cache/models/empty
-/tmp/cache/persistent/*
-!/tmp/cache/persistent/empty
-/tmp/cache/views/*
-!/tmp/cache/views/empty
-/tmp/sessions/*
-!/tmp/sessions/empty
-/tmp/tests/*
-!/tmp/tests/empty
+# Zależności (nieużywane, ale na przyszłość)
+/vendor/
+composer.lock
 
-/logs/*
-!/logs/empty
+# Logi i pliki tymczasowe
+*.log
+*.tmp
 
-# CakePHP 2
-
-/app/tmp/*
-/app/Config/core.php
-/app/Config/database.php
-/vendors/*
+# Archiwa
+*.zip
