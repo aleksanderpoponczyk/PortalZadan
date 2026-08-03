@@ -1,0 +1,28 @@
+name: Deploy Zadania·AP
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+
+      - name: Wyślij pliki (FTPS)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server:     ${{ secrets.FTP_SERVER }}
+          username:   ${{ secrets.FTP_USERNAME }}
+          password:   ${{ secrets.FTP_PASSWORD }}
+          protocol:   ftps
+          server-dir: sites/poponczyk.com/zadania/public_html/
+          dry-run:    true
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/.github/**
+            config.php
