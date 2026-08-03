@@ -2,6 +2,7 @@
 declare(strict_types=1);
 require __DIR__ . '/inc/bootstrap.php';
 require __DIR__ . '/inc/layout.php';
+require __DIR__ . '/inc/twofa_lib.php';
 
 if (logged_in()) {
     redirect('index.php');
@@ -19,8 +20,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user = $st->fetch();
 
     if ($user && password_verify($password, $user['password_hash'])) {
+        $uid = (int)$user['id'];
+
+        // Hasło poprawne. Jeśli włączone 2FA i to nie jest zaufana przeglądarka —
+        // nie loguj w pełni: ustaw stan „pending" i poproś o kod na twofa.php.
+        if (twofa_is_enabled($uid) && !trusted_cookie_valid($uid)) {
+            twofa_set_pending($uid);
+            redirect('twofa.php');
+        }
+
         session_regenerate_id(true);
-        $_SESSION['uid']   = (int)$user['id'];
+        $_SESSION['uid']   = $uid;
         $_SESSION['uname'] = $user['username'];
         redirect('index.php');
     }
