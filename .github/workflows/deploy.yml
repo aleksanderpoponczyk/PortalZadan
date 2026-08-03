@@ -20,6 +20,6 @@ jobs:
           password:    ${{ secrets.FTP_PASSWORD }}
           port:        2222
           local_path:  './*'
-          remote_path: '/home/poponczyk/sites/poponczyk.com/zadania/public_html'
+          remote_path: 'sites/poponczyk.com/zadania/public_html'
           sftp_only:   'true'
           delete_remote_files: 'false'
