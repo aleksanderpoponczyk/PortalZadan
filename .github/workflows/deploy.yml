@@ -12,19 +12,16 @@ jobs:
       - name: Pobierz kod
         uses: actions/checkout@v4
 
-      - name: Wyślij pliki (FTPS)
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+      - name: Wyślij pliki (SFTP)
+        uses: wlixcc/SFTP-Deploy-Action@v1.2.5
         with:
-          server:     ${{ secrets.FTP_SERVER }}
-          username:   ${{ secrets.FTP_USERNAME }}
-          password:   ${{ secrets.FTP_PASSWORD }}
-          protocol:   ftps
-          port:       21
-          security:   loose
-          server-dir: sites/poponczyk.com/zadania/public_html/
-          dry-run:    true
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/.github/**
+          server:       ${{ secrets.FTP_SERVER }}
+          username:     ${{ secrets.FTP_USERNAME }}
+          password:     ${{ secrets.FTP_PASSWORD }}
+          port:         2222
+          local_path:   './*'
+          remote_path:  '/home/poponczyk/sites/poponczyk.com/zadania/public_html'
+          exclude_list: |
             config.php
+            .git*
+            .github
