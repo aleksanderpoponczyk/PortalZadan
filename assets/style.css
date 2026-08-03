@@ -282,3 +282,70 @@ pre {
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
+/* ===== Widok tabeli ===== */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--card);
+}
+table.tasks { width: 100%; border-collapse: collapse; font-size: .9rem; }
+table.tasks th,
+table.tasks td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+table.tasks thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--card);
+  font-weight: 600;
+  font-size: .82rem;
+  color: var(--muted);
+}
+table.tasks th a { color: var(--muted); text-decoration: none; }
+table.tasks th a:hover { color: var(--accent); }
+table.tasks tbody tr:last-child td { border-bottom: 0; }
+
+/* sticky pierwsza kolumna (tytuł) + grzbiet priorytetu na wierszu */
+table.tasks .col-title {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--card);
+  min-width: 190px;
+  white-space: normal;
+  border-left: 7px solid var(--line);
+}
+table.tasks thead .col-title { z-index: 3; }
+table.tasks tbody tr.p1 .col-title { border-left-color: var(--p1); }
+table.tasks tbody tr.p2 .col-title { border-left-color: var(--p2); }
+table.tasks tbody tr.p3 .col-title { border-left-color: var(--p3); }
+table.tasks tbody tr.p4 .col-title { border-left-color: var(--p4); }
+table.tasks tbody tr.p5 .col-title { border-left-color: var(--p5); }
+table.tasks .col-title .task-title { display: inline; font-size: .95rem; }
+table.tasks .col-title .kv { margin-left: 6px; }
+
+/* komórki edycyjne inline */
+.cellf { display: flex; gap: 4px; align-items: center; margin: 0; }
+.cell-input { width: auto; min-height: 34px; padding: 2px 6px; font-size: .85rem; }
+.cell-save { min-height: 30px; padding: 0 9px; }
+td.col-due_date .due.over { margin-left: 6px; }
+
+/* wybór kolumn */
+.colpick { margin: 4px 0 12px; }
+.colpick > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: .9rem;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+.colpick .cols { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 6px 0; }
+.colpick .cols label.check { margin: 4px 0; }
