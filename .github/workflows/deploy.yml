@@ -19,6 +19,8 @@ jobs:
           username:   ${{ secrets.FTP_USERNAME }}
           password:   ${{ secrets.FTP_PASSWORD }}
           protocol:   ftps
+          port:       21
+          security:   loose
           server-dir: sites/poponczyk.com/zadania/public_html/
           dry-run:    true
           exclude: |
