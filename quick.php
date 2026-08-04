@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/inc/bootstrap.php';
+require __DIR__ . '/inc/repo_tasks.php';
 require __DIR__ . '/inc/layout.php';
 require_login();
 
@@ -38,15 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $title = 'Nowe zadanie ' . date('Y-m-d H:i');
         }
 
-        $st = pdo()->prepare(
-            'INSERT INTO tasks (title, description, sphere, status, priority, due_date, source)
-             VALUES (:t, :d, :sf, \'nowe\', :p, :dd, :src)'
-        );
-        $st->execute([
-            ':t' => $title, ':d' => $description, ':sf' => $sphere,
-            ':p' => $prio, ':dd' => $due, ':src' => 'wklejka',
+        $id = task_create([
+            'title'       => $title,
+            'description' => $description,
+            'sphere'      => $sphere,
+            'priority'    => $prio,
+            'due_date'    => $due,
+            'source'      => 'wklejka',
         ]);
-        $id = (int)pdo()->lastInsertId();
         flash_set('Utworzono zadanie #' . $id . ' z wklejonej treści.');
         redirect('task.php?id=' . $id);
     }
