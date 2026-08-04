@@ -19,6 +19,8 @@ if (!is_file($configPath)) {
 }
 require $configPath;
 
+require __DIR__ . '/security.php';
+
 session_set_cookie_params([
     'lifetime' => 60 * 60 * 24 * 30,
     'path'     => '/',
