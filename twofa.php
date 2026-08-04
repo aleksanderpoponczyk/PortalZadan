@@ -3,6 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/inc/bootstrap.php';
 require __DIR__ . '/inc/layout.php';
 require __DIR__ . '/inc/twofa_lib.php';
+require __DIR__ . '/inc/auth_guard.php';
 
 /* ================================================================
    twofa.php — dwa tryby:
@@ -41,7 +42,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $code  = (string)($_POST['code'] ?? '');
             $trust = !empty($_POST['trust']);
 
-            if (twofa_verify_totp($uid, $code) || twofa_consume_recovery_code($uid, $code)) {
+            $viaTotp = twofa_verify_totp($uid, $code);
+            $viaRecovery = !$viaTotp && twofa_consume_recovery_code($uid, $code);
+            if ($viaTotp || $viaRecovery) {
                 $u = twofa_user($uid);
                 session_regenerate_id(true);
                 $_SESSION['uid']   = $uid;
@@ -50,9 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($trust) {
                     trusted_device_issue($uid);
                 }
+                auth_log_event($viaRecovery ? 'recovery_used' : 'twofa_ok', $uid);
                 flash_set('Zalogowano.');
                 redirect('index.php');
             }
+            auth_log_event('twofa_fail', $uid);
             $error = 'Nieprawidłowy kod. Spróbuj ponownie lub użyj kodu odzyskiwania.';
         } elseif ($action === 'cancel') {
             twofa_clear_pending();
