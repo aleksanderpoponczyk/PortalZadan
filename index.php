@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/inc/bootstrap.php';
+require __DIR__ . '/inc/repo_tasks.php';
+require __DIR__ . '/inc/repo_prefs.php';
 require __DIR__ . '/inc/layout.php';
 require_login();
 
@@ -30,24 +32,6 @@ const IDX_SORTABLE = [
     'title', 'sphere', 'status', 'priority', 'due_date', 'scheduled_date',
     'source', 'created_at', 'updated_at', 'completed_at', 'id', 'entries', 'last_entry',
 ];
-
-/* ---- Preferencje per użytkownik (tabela user_prefs) ---- */
-function pref_get(string $k, ?string $default = null): ?string
-{
-    $st = pdo()->prepare('SELECT v FROM user_prefs WHERE user_id = :u AND k = :k');
-    $st->execute([':u' => (int)($_SESSION['uid'] ?? 0), ':k' => $k]);
-    $row = $st->fetch();
-    return $row ? (string)$row['v'] : $default;
-}
-
-function pref_set(string $k, string $v): void
-{
-    $st = pdo()->prepare(
-        'INSERT INTO user_prefs (user_id, k, v) VALUES (:u, :k, :v)
-         ON DUPLICATE KEY UPDATE v = VALUES(v)'
-    );
-    $st->execute([':u' => (int)($_SESSION['uid'] ?? 0), ':k' => $k, ':v' => $v]);
-}
 
 /* ---- Kontekst widoku (walidowany), do zachowania w URL-ach i przekierowaniach ---- */
 function current_ctx(): array
@@ -122,22 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($ok) {
                 if ($field === 'status') {
-                    if ($value === 'zrobione') {
-                        $st = pdo()->prepare(
-                            'UPDATE tasks SET status = :v, completed_at = NOW(), updated_at = NOW() WHERE id = :id'
-                        );
-                    } else {
-                        $st = pdo()->prepare(
-                            'UPDATE tasks SET status = :v, completed_at = NULL, updated_at = NOW() WHERE id = :id'
-                        );
-                    }
-                    $st->execute([':v' => $bind, ':id' => $id]);
+                    task_set_status($id, $bind, true);
                 } else {
                     // $field pochodzi z IDX_EDITABLE (whitelist) — bezpieczne w nazwie kolumny
-                    $st = pdo()->prepare(
-                        "UPDATE tasks SET {$field} = :v, updated_at = NOW() WHERE id = :id"
-                    );
-                    $st->execute([':v' => $bind, ':id' => $id]);
+                    task_update_field($id, $field, $bind);
                 }
                 flash_set('Zapisano zmianę.');
             }
@@ -151,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $chosen = [];
         }
         $valid = array_values(array_intersect(array_keys(IDX_ALL_COLS), $chosen));
-        pref_set('index_cols', implode(',', $valid));
+        prefs_set((int)($_SESSION['uid'] ?? 0), 'index_cols', implode(',', $valid));
         flash_set('Zapisano układ kolumn.');
         redirect(ctx_url(['widok' => 'tabela']));
     }
@@ -170,61 +142,17 @@ $q      = trim((string)($_GET['q'] ?? ''));
 $sort   = in_array((string)($_GET['sort'] ?? ''), IDX_SORTABLE, true) ? (string)$_GET['sort'] : '';
 $dir    = (strtolower((string)($_GET['dir'] ?? '')) === 'desc') ? 'desc' : 'asc';
 
-$where  = [];
-$params = [];
-
-if (isset(SPHERES[$sphere])) {
-    $where[] = 'sphere = :sfera';
-    $params[':sfera'] = $sphere;
-}
-
-if ($status === 'aktywne') {
-    $where[] = "status IN ('nowe','w_toku','oczekuje')";
-} elseif (isset(STATUSES[$status])) {
-    $where[] = 'status = :status';
-    $params[':status'] = $status;
-} // 'wszystkie' => bez warunku
-
-if ($q !== '') {
-    $where[] = '(title LIKE :q OR description LIKE :q)';
-    $params[':q'] = '%' . $q . '%';
-}
-
-/* Kolumny SELECT: tabela dokłada znaczniki czasu i liczniki wpisów */
-$baseCols = 't.id, t.title, t.sphere, t.status, t.priority, t.due_date, t.scheduled_date, t.source';
-if ($widok === 'tabela') {
-    $selCols = $baseCols
-        . ', t.created_at, t.updated_at, t.completed_at'
-        . ', (SELECT COUNT(*) FROM task_entries te WHERE te.task_id = t.id) AS entries'
-        . ', (SELECT MAX(te2.created_at) FROM task_entries te2 WHERE te2.task_id = t.id) AS last_entry';
-} else {
-    $selCols = $baseCols;
-}
-
-/* ORDER BY: domyślny, albo wybrany nagłówkiem w tabeli (sort/dir z whitelisty) */
-if ($widok === 'tabela' && $sort !== '') {
-    $d = ($dir === 'desc') ? 'DESC' : 'ASC';
-    if (in_array($sort, ['due_date', 'scheduled_date', 'completed_at', 'last_entry'], true)) {
-        $orderBy = "ISNULL($sort) ASC, $sort $d, t.id DESC";
-    } else {
-        $orderBy = "$sort $d, t.id DESC";
-    }
-} else {
-    $orderBy = 'priority ASC, ISNULL(due_date) ASC, due_date ASC, id DESC';
-}
-
-$sql = "SELECT $selCols FROM tasks t"
-     . ($where ? ' WHERE ' . implode(' AND ', $where) : '')
-     . " ORDER BY $orderBy LIMIT 300";
-
-$st = pdo()->prepare($sql);
-$st->execute($params);
-$tasks = $st->fetchAll();
+$tasks = tasks_list(
+    ['sphere' => $sphere, 'status' => $status, 'q' => $q],
+    $widok,
+    $sort,
+    $dir
+);
 
 $today = date('Y-m-d');
 
 /* Wybrane kolumny (z preferencji użytkownika) */
-$savedCols = pref_get('index_cols', null);
+$savedCols = prefs_get((int)($_SESSION['uid'] ?? 0), 'index_cols', null);
 if ($savedCols !== null) {
     $cols = array_values(array_intersect(array_keys(IDX_ALL_COLS), explode(',', $savedCols)));
 } else {
