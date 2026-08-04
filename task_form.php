@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/inc/bootstrap.php';
+require __DIR__ . '/inc/repo_tasks.php';
 require __DIR__ . '/inc/layout.php';
 require_login();
 
@@ -20,9 +21,7 @@ $t = [
 ];
 
 if ($isEdit) {
-    $st = pdo()->prepare('SELECT * FROM tasks WHERE id = :id');
-    $st->execute([':id' => $id]);
-    $row = $st->fetch();
+    $row = task_get($id);
     if (!$row) {
         flash_set('Nie znaleziono zadania #' . $id . '.');
         redirect('index.php');
@@ -47,30 +46,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Tytuł zadania jest wymagany.';
     } else {
         if ($isEdit) {
-            $st = pdo()->prepare(
-                'UPDATE tasks SET title = :t, description = :d, sphere = :sf, status = :st,
-                        priority = :p, due_date = :dd, scheduled_date = :sd, source = :src,
-                        completed_at = IF(:st2 = \'zrobione\', COALESCE(completed_at, NOW()), NULL)
-                 WHERE id = :id'
-            );
-            $st->execute([
-                ':t' => $t['title'], ':d' => $t['description'], ':sf' => $t['sphere'],
-                ':st' => $t['status'], ':p' => $t['priority'], ':dd' => $t['due_date'],
-                ':sd' => $t['scheduled_date'], ':src' => $t['source'],
-                ':st2' => $t['status'], ':id' => $id,
-            ]);
+            task_update($id, $t);
             flash_set('Zapisano zmiany w zadaniu #' . $id . '.');
         } else {
-            $st = pdo()->prepare(
-                'INSERT INTO tasks (title, description, sphere, status, priority, due_date, scheduled_date, source)
-                 VALUES (:t, :d, :sf, :st, :p, :dd, :sd, :src)'
-            );
-            $st->execute([
-                ':t' => $t['title'], ':d' => $t['description'], ':sf' => $t['sphere'],
-                ':st' => $t['status'], ':p' => $t['priority'], ':dd' => $t['due_date'],
-                ':sd' => $t['scheduled_date'], ':src' => $t['source'],
-            ]);
-            $id = (int)pdo()->lastInsertId();
+            $id = task_create($t);
             flash_set('Utworzono zadanie #' . $id . '.');
         }
         redirect('task.php?id=' . $id);
