@@ -15,6 +15,7 @@ declare(strict_types=1);
  */
 
 require __DIR__ . '/inc/bootstrap.php';
+require __DIR__ . '/inc/repo_tasks.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -58,13 +59,13 @@ if (mb_strlen($title) > 160) {
     $title = mb_substr($title, 0, 159) . '…';
 }
 
-$st = pdo()->prepare(
-    'INSERT INTO tasks (title, description, sphere, status, priority, due_date, source)
-     VALUES (:t, :d, :sf, \'nowe\', :p, :dd, :src)'
-);
-$st->execute([
-    ':t' => $title, ':d' => $description, ':sf' => $sphere,
-    ':p' => $prio, ':dd' => $due, ':src' => $source,
+$id = task_create([
+    'title'       => $title,
+    'description' => $description,
+    'sphere'      => $sphere,
+    'priority'    => $prio,
+    'due_date'    => $due,
+    'source'      => $source,
 ]);
 
-jout(['ok' => true, 'id' => (int)pdo()->lastInsertId()]);
+jout(['ok' => true, 'id' => $id]);
