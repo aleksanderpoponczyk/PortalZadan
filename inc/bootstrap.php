@@ -11,11 +11,24 @@ if (!extension_loaded('mbstring')) {
 mb_internal_encoding('UTF-8');
 date_default_timezone_set('Europe/Warsaw');
 
-$configPath = dirname(__DIR__) . '/config.php';
-if (!is_file($configPath)) {
+/* config.php PONAD webrootem (poza public_html) ma pierwszeństwo — nie jest
+   serwowalny przez WWW ani wgrywany przez deploy SFTP. Stara lokalizacja wewnątrz
+   public_html zostaje jako fallback na czas migracji (Etap 6). */
+$configCandidates = [
+    dirname(__DIR__, 2) . '/config.php',  // powyżej public_html (preferowane)
+    dirname(__DIR__) . '/config.php',     // wewnątrz public_html (stara lokalizacja)
+];
+$configPath = null;
+foreach ($configCandidates as $cand) {
+    if (is_file($cand)) {
+        $configPath = $cand;
+        break;
+    }
+}
+if ($configPath === null) {
     http_response_code(500);
     header('Content-Type: text/plain; charset=utf-8');
-    exit("Brak pliku config.php.\nSkopiuj config.sample.php jako config.php i uzupełnij dane bazy danych.");
+    exit("Brak pliku config.php.\nSkopiuj config.sample.php jako config.php (ponad public_html) i uzupełnij dane bazy danych.");
 }
 require $configPath;
 
