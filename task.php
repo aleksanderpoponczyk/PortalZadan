@@ -106,7 +106,7 @@ page_header('#' . $t['id'] . ' ' . $t['title']);
   <?php endforeach; ?>
   <a class="btn small" href="task_form.php?id=<?= (int)$t['id'] ?>" id="edit-link">Edytuj</a>
   <form method="post" action="task.php?id=<?= (int)$t['id'] ?>"
-        onsubmit="return confirm('Na pewno usunąć zadanie #<?= (int)$t['id'] ?> wraz z dziennikiem?');">
+        data-confirm="Na pewno usunąć zadanie #<?= (int)$t['id'] ?> wraz z dziennikiem?">
     <?= csrf_field() ?>
     <input type="hidden" name="action" value="delete_task">
     <button type="submit" class="btn small danger">Usuń</button>
@@ -150,4 +150,5 @@ page_header('#' . $t['id'] . ' ' . $t['title']);
   <summary>Kontekst dla agenta AI (pełny tekst zadania)</summary>
   <pre id="agent-context-text"><?= e($agent) ?></pre>
 </details>
+<script src="assets/app.js"></script>
 <?php page_footer();
