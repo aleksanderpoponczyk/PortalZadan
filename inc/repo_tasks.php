@@ -59,8 +59,9 @@ function tasks_list(array $filters, string $widok, string $sort = '', string $di
 
     $q = trim((string) ($filters['q'] ?? ''));
     if ($q !== '') {
-        $where[]      = '(title LIKE :q OR description LIKE :q)';
+        $where[]      = '(title LIKE :q OR description LIKE :qd)';
         $params[':q'] = '%' . $q . '%';
+        $params[':qd'] = '%' . $q . '%';
     }
 
     $baseCols = 't.id, t.title, t.sphere, t.status, t.priority, t.due_date, t.scheduled_date, t.source';
