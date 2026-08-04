@@ -5,20 +5,27 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# Najmniejsze uprawnienia tokena workflow: tylko odczyt repo (na potrzeby checkout).
+permissions:
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Pobierz kod
-        uses: actions/checkout@v4
+        # Akcje przypięte do pełnego SHA (niezmienne); komentarz podaje wersję.
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
       - name: Wyślij pliki (SFTP)
-        uses: wlixcc/SFTP-Deploy-Action@v1.2.5
+        uses: wlixcc/SFTP-Deploy-Action@896dcfc555b4cbe36a4acc9bc0827ab474d429fc # v1.2.5
         with:
           server:      ${{ secrets.FTP_SERVER }}
           username:    ${{ secrets.FTP_USERNAME }}
           password:    ${{ secrets.FTP_PASSWORD }}
           port:        2222
+          # './*' celowo pomija dotfiles — dzieki temu .git/.github NIE trafiaja do
+          # webroota. .htaccess/.user.ini wgrywane sa recznie (rzadko sie zmieniaja).
           local_path:  './*'
           remote_path: 'sites/poponczyk.com/zadania/public_html'
           sftp_only:   'true'
