@@ -72,7 +72,7 @@ page_header('Logowanie', withNav: false);
     <label for="password">Hasło</label>
     <input type="password" id="password" name="password" autocomplete="current-password" required>
     <div class="actions">
-      <button type="submit" class="btn primary" style="width:100%">Zaloguj</button>
+      <button type="submit" class="btn primary btn-block">Zaloguj</button>
     </div>
   </form>
 </div>
