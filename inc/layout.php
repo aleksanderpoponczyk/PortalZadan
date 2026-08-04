@@ -14,6 +14,10 @@ function page_header(string $title, bool $withNav = true): void
 <meta name="theme-color" content="#151913" media="(prefers-color-scheme: dark)">
 <title><?= e($title) ?> · Zadania·AP</title>
 <link rel="stylesheet" href="assets/style.css">
++<link rel="manifest" href="/manifest.json">
++<link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
++<meta name="mobile-web-app-capable" content="yes">
++<meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <body>
 <?php if ($withNav): ?>
