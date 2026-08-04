@@ -3,6 +3,7 @@ declare(strict_types=1);
 require __DIR__ . '/inc/bootstrap.php';
 require __DIR__ . '/inc/layout.php';
 require __DIR__ . '/inc/twofa_lib.php';
+require __DIR__ . '/inc/repo_users.php';
 
 if (logged_in()) {
     redirect('index.php');
@@ -15,9 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim((string)($_POST['username'] ?? ''));
     $password = (string)($_POST['password'] ?? '');
 
-    $st = pdo()->prepare('SELECT id, username, password_hash FROM users WHERE username = :u LIMIT 1');
-    $st->execute([':u' => $username]);
-    $user = $st->fetch();
+    $user = user_by_username($username);
 
     if ($user && password_verify($password, $user['password_hash'])) {
         $uid = (int)$user['id'];
