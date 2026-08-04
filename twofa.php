@@ -212,14 +212,12 @@ if ($error !== null) {
     $uri = totp_otpauth_uri($secret, (string)$u['username'], TOTP_ISSUER);
   ?>
   <p>Zeskanuj kod QR w aplikacji uwierzytelniającej (Google Authenticator, Aegis…):</p>
-  <div class="qr-box" data-otp="<?= e($uri) ?>" style="max-width:260px;width:100%;background:#fff;padding:12px;border-radius:8px;box-sizing:border-box"></div>
+  <div class="qr-box" data-otp="<?= e($uri) ?>"></div>
   <p class="kv">Nie możesz zeskanować? Wpisz ręcznie ten klucz:</p>
   <p class="secret mono"><?= e($grouped) ?></p>
   <p class="kv">Albo użyj linku: <br><code class="mono break"><?= e($uri) ?></code></p>
   <script src="assets/qr.js"></script>
-  <script>
-  (function(){var el=document.querySelector('.qr-box[data-otp]');if(!el||typeof qrcode==='undefined')return;try{var q=qrcode(0,'M');q.addData(el.getAttribute('data-otp'));q.make();el.innerHTML=q.createSvgTag({cellSize:5,margin:2,scalable:true});var s=el.querySelector('svg');if(s){s.removeAttribute('width');s.removeAttribute('height');s.style.width='100%';s.style.height='auto';s.style.display='block';}}catch(e){}})();
-  </script>
+  <script src="assets/twofa-qr.js"></script>
 
   <form method="post" action="twofa.php">
     <?= csrf_field() ?>
