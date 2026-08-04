@@ -5,7 +5,7 @@ declare(strict_types=1);
  *
  * Dołączany na początku bootstrap.php, PRZED konfiguracją i startem sesji.
  * Wyłącznie ini sesji oraz nagłówki HTTP — żadnych innych efektów ubocznych.
- * (HSTS celowo NIE tutaj — osobny etap. CSP na razie tylko Report-Only.)
+ * (CSP w trybie enforce; HSTS z krótkim max-age — szczegóły w komentarzach niżej.)
  */
 
 /* --- Hardening sesji (musi być przed session_start) --- */
@@ -21,10 +21,14 @@ if (!headers_sent()) {
     header('X-Frame-Options: DENY');
     header('Permissions-Policy: geolocation=(), camera=(), microphone=()');
 
-    /* CSP wyłącznie w trybie Report-Only — nie blokuje, tylko raportuje do konsoli.
-       Inline <script>/style/handlery zostaną usunięte w osobnym etapie (potem enforce). */
+    /* HSTS — krótki max-age (1 dzień) na start; po potwierdzeniu można podnieść
+       do 31536000 i dodać includeSubDomains/preload. Honorowane tylko przez HTTPS. */
+    header('Strict-Transport-Security: max-age=86400');
+
+    /* CSP w trybie enforce — inline <script>/style/handlery usunięte w Etapie 7,
+       zero naruszeń potwierdzone w trybie Report-Only przed tą zmianą. */
     header(
-        "Content-Security-Policy-Report-Only: "
+        "Content-Security-Policy: "
         . "default-src 'self'; script-src 'self'; style-src 'self'; "
         . "img-src 'self' data:; object-src 'none'; base-uri 'none'; "
         . "frame-ancestors 'none'; form-action 'self'"
