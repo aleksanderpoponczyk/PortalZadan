@@ -1,0 +1,19 @@
+# Zadania·AP — ochrona dostępu do plików (LiteSpeed / Apache 2.4)
+
+# Wyłącz listowanie katalogów
+Options -Indexes
+
+# Zablokuj bezpośredni dostęp HTTP do katalogu inc/
+# (require() po stronie serwera działa dalej — to nie jest żądanie HTTP)
+RedirectMatch 404 ^/inc/
+
+# Zablokuj pliki wrażliwe / techniczne
+<Files "config.php">
+    Require all denied
+</Files>
+<FilesMatch "\.(sql|md)$">
+    Require all denied
+</FilesMatch>
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
