@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 require __DIR__ . '/inc/bootstrap.php';
+require __DIR__ . '/inc/repo_tasks.php';
 require __DIR__ . '/inc/layout.php';
 require_login();
 
@@ -22,25 +23,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $content = trim((string)($_POST['content'] ?? ''));
         if ($content !== '') {
-            $st = pdo()->prepare('INSERT INTO task_entries (task_id, author, content) VALUES (:t, :a, :c)');
-            $st->execute([':t' => $id, ':a' => $author, ':c' => $content]);
+            task_entry_add($id, $author, $content);
             flash_set('Dodano wpis.');
         }
     } elseif ($action === 'set_status') {
         $newStatus = (string)($_POST['status'] ?? '');
         if (isset(STATUSES[$newStatus])) {
-            $st = pdo()->prepare(
-                "UPDATE tasks
-                 SET status = :s,
-                     completed_at = IF(:s2 = 'zrobione', NOW(), NULL)
-                 WHERE id = :id"
-            );
-            $st->execute([':s' => $newStatus, ':s2' => $newStatus, ':id' => $id]);
+            task_set_status($id, $newStatus);
             flash_set('Status zmieniony na: ' . STATUSES[$newStatus] . '.');
         }
     } elseif ($action === 'delete_task') {
-        $st = pdo()->prepare('DELETE FROM tasks WHERE id = :id');
-        $st->execute([':id' => $id]);
+        task_delete($id);
         flash_set('Zadanie #' . $id . ' usunięte.');
         redirect('index.php');
     }
@@ -50,18 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 /* ---------- Pobranie danych ---------- */
 
-$st = pdo()->prepare('SELECT * FROM tasks WHERE id = :id');
-$st->execute([':id' => $id]);
-$t = $st->fetch();
+$t = task_get($id);
 
 if (!$t) {
     flash_set('Nie znaleziono zadania #' . $id . '.');
     redirect('index.php');
 }
 
-$st = pdo()->prepare('SELECT * FROM task_entries WHERE task_id = :id ORDER BY created_at ASC, id ASC');
-$st->execute([':id' => $id]);
-$entries = $st->fetchAll();
+$entries = task_entries($id);
 
 /* ---------- Kontekst tekstowy dla agenta AI ---------- */
 
